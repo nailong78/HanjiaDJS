@@ -23,7 +23,6 @@
             overflow: hidden;
         }
 
-        /* 液态流体背景 */
         .liquid-bg {
             position: absolute;
             width: 100%; height: 100%;
@@ -44,7 +43,7 @@
             to { transform: translate(20%, 10%) scale(1.2); }
         }
 
-        /* 灵动岛组件 - 已修改为液态玻璃动效 UI */
+        /* 灵动岛 */
         .dynamic-island {
             margin-top: 20px;
             width: 220px; 
@@ -59,39 +58,75 @@
             justify-content: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
             overflow: hidden;
             cursor: pointer;
             z-index: 100;
         }
 
+        /* 展开状态 */
         .island-expanded {
             width: 90%;
             height: 110px; 
             border-radius: 35px;
-            padding: 15px 20px;
-            flex-direction: column;
+            padding: 15px 25px;
+        }
+
+        /* 内部容器 */
+        .island-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
             justify-content: center;
         }
 
-        .island-content {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* 标题：已过 / 学期时间轴 */
+        #island-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1d1d1f;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-45px); /* 初始居中偏移 */
+        }
+        .island-expanded #island-title {
+            transform: translate(-105px, -22px); /* 移动到左上角 */
+            font-size: 14px;
         }
 
+        /* 关键：百分比数字的过渡 */
+        #percent-val {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1d1d1f;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(35px); /* 初始在“已过”右侧 */
+            white-space: nowrap;
+        }
+        .island-expanded #percent-val {
+            transform: translate(100px, -22px); /* 飞到右上角 */
+            color: var(--ios-blue);
+            font-size: 12px;
+        }
+
+        /* 进度条 */
         .island-progress-container {
+            position: absolute;
+            bottom: 15px;
             width: 100%;
             height: 8px;
             background: rgba(0,0,0,0.05);
             border-radius: 4px;
-            display: none;
             overflow: hidden;
-            margin-top: 12px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s 0.1s;
         }
-
         .island-expanded .island-progress-container {
-            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .progress-fill {
@@ -102,9 +137,9 @@
             box-shadow: 0 0 10px rgba(0,122,255,0.3);
         }
 
-        /* 主倒计时卡片 - 区域1间距已通过 margin-top 缩小 */
+        /* 主卡片 */
         .main-card {
-            margin-top: 15px; /* 区域1间距缩小 */
+            margin-top: 15px;
             width: 88%;
             max-width: 380px;
             background: var(--glass-card);
@@ -162,16 +197,12 @@
 
     <div class="dynamic-island" id="island" onclick="toggleIsland()">
         <div class="island-content">
-            <span id="mini-percent" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">已过 0.000000%</span>
+            <span id="island-title">已过</span>
             
-            <div id="expanded-ui" style="display:none; width:100%;">
-                <div style="display:flex; justify-content:space-between; margin-top: 5px;">
-                    <span style="font-size:12px; color:#86868b; font-weight: 600;">学期进度</span>
-                    <span id="full-percent" style="font-size:12px; font-weight:700; color:var(--ios-blue);">0.000000%</span>
-                </div>
-                <div class="island-progress-container">
-                    <div class="progress-fill" id="bar"></div>
-                </div>
+            <span id="percent-val">0.000000%</span>
+            
+            <div class="island-progress-container">
+                <div class="progress-fill" id="bar"></div>
             </div>
         </div>
     </div>
@@ -182,18 +213,9 @@
         <span class="unit-label">天</span>
 
         <div class="sub-timer">
-            <div class="timer-item">
-                <span class="timer-num" id="h">00</span>
-                <span class="timer-text">时</span>
-            </div>
-            <div class="timer-item">
-                <span class="timer-num" id="m">00</span>
-                <span class="timer-text">分</span>
-            </div>
-            <div class="timer-item">
-                <span class="timer-num" id="s">00</span>
-                <span class="timer-text">秒</span>
-            </div>
+            <div class="timer-item"><span class="timer-num" id="h">00</span><span class="timer-text">时</span></div>
+            <div class="timer-item"><span class="timer-num" id="m">00</span><span class="timer-text">分</span></div>
+            <div class="timer-item"><span class="timer-num" id="s">00</span><span class="timer-text">秒</span></div>
         </div>
         
         <p style="margin-top:30px; font-size:11px; color:#c7c7cc;">2026年2月6日 17:30 | 制作：奶龙@NL78991</p>
@@ -206,26 +228,22 @@
 
         function toggleIsland() {
             const island = document.getElementById('island');
-            const expandedUI = document.getElementById('expanded-ui');
-            const mini = document.getElementById('mini-percent');
+            const title = document.getElementById('island-title');
             isExpanded = !isExpanded;
             
             if(isExpanded) {
                 island.classList.add('island-expanded');
-                expandedUI.style.display = 'block';
-                mini.innerText = "学期时间轴";
-                mini.style.fontSize = "14px";
+                title.innerText = "学期时间轴";
             } else {
                 island.classList.remove('island-expanded');
-                expandedUI.style.display = 'none';
-                mini.style.fontSize = "13px";
-                update(); 
+                title.innerText = "已过";
             }
         }
 
         function update() {
             const now = new Date().getTime();
             
+            // 倒计时逻辑
             const diff = end - now;
             if (diff > 0) {
                 document.getElementById('d').innerText = Math.floor(diff / 86400000);
@@ -234,16 +252,13 @@
                 document.getElementById('s').innerText = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
             }
 
+            // 百分比逻辑
             const total = end - start;
             const passed = now - start;
             const percent = Math.min(Math.max((passed / total) * 100, 0), 100).toFixed(6);
             
             document.getElementById('bar').style.width = percent + '%';
-            document.getElementById('full-percent').innerText = percent + '%';
-            
-            if(!isExpanded) {
-                document.getElementById('mini-percent').innerText = "已过 " + percent + "%";
-            }
+            document.getElementById('percent-val').innerText = percent + '%';
         }
 
         setInterval(update, 100);
