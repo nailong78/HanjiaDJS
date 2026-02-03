@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>寒假倒计时 2026</title>
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --glass-card: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #f2f2f7;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+            overflow: hidden;
+        }
+
+        /* 液态流体背景 */
+        .liquid-bg {
+            position: absolute;
+            width: 100%; height: 100%;
+            filter: blur(60px);
+            z-index: -1;
+            background: #fff;
+        }
+        .blob {
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d1e4ff 0%, #ffdbde 100%);
+            animation: move 25s infinite alternate ease-in-out;
+        }
+
+        @keyframes move {
+            from { transform: translate(-10%, -10%) scale(1); }
+            to { transform: translate(20%, 10%) scale(1.2); }
+        }
+
+        /* 灵动岛组件 - 已修改为液态玻璃动效 UI */
+        .dynamic-island {
+            margin-top: 20px;
+            width: 220px; 
+            height: 36px;
+            background: var(--glass-card);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .island-expanded {
+            width: 90%;
+            height: 110px; 
+            border-radius: 35px;
+            padding: 15px 20px;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .island-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .island-progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            display: none;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .island-expanded .island-progress-container {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--ios-blue);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,122,255,0.3);
+        }
+
+        /* 主倒计时卡片 - 区域1间距已通过 margin-top 缩小 */
+        .main-card {
+            margin-top: 15px; /* 区域1间距缩小 */
+            width: 88%;
+            max-width: 380px;
+            background: var(--glass-card);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 50px;
+            padding: 40px 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.05);
+            text-align: center;
+            animation: hoverCard 6s infinite ease-in-out;
+        }
+
+        @keyframes hoverCard {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .days-value {
+            font-size: 110px;
+            font-weight: 800;
+            letter-spacing: -5px;
+            background: linear-gradient(180deg, #1d1d1f, #86868b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .unit-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ios-blue);
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .sub-timer {
+            display: flex;
+            background: rgba(255,255,255,0.5);
+            padding: 20px;
+            border-radius: 30px;
+            gap: 10px;
+        }
+
+        .timer-item { flex: 1; }
+        .timer-num { font-size: 24px; font-weight: 700; color: #1d1d1f; display: block; }
+        .timer-text { font-size: 11px; color: #86868b; }
+
+    </style>
+</head>
+<body>
+
+    <div class="liquid-bg">
+        <div class="blob"></div>
+    </div>
+
+    <div class="dynamic-island" id="island" onclick="toggleIsland()">
+        <div class="island-content">
+            <span id="mini-percent" style="font-size: 13px; font-weight: 600; color: #1d1d1f;">已过 0.000000%</span>
+            
+            <div id="expanded-ui" style="display:none; width:100%;">
+                <div style="display:flex; justify-content:space-between; margin-top: 5px;">
+                    <span style="font-size:12px; color:#86868b; font-weight: 600;">学期进度</span>
+                    <span id="full-percent" style="font-size:12px; font-weight:700; color:var(--ios-blue);">0.000000%</span>
+                </div>
+                <div class="island-progress-container">
+                    <div class="progress-fill" id="bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <p style="color:#86868b; font-weight:600; font-size:15px; margin-bottom:10px;">距离寒假开始</p>
+        <span class="days-value" id="d">00</span>
+        <span class="unit-label">天</span>
+
+        <div class="sub-timer">
+            <div class="timer-item">
+                <span class="timer-num" id="h">00</span>
+                <span class="timer-text">时</span>
+            </div>
+            <div class="timer-item">
+                <span class="timer-num" id="m">00</span>
+                <span class="timer-text">分</span>
+            </div>
+            <div class="timer-item">
+                <span class="timer-num" id="s">00</span>
+                <span class="timer-text">秒</span>
+            </div>
+        </div>
+        
+        <p style="margin-top:30px; font-size:11px; color:#c7c7cc;">2026年2月6日 17:30 | 制作：奶龙@NL78991</p>
+    </div>
+
+    <script>
+        const start = new Date('2025-09-01T08:00:00').getTime();
+        const end = new Date('2026-02-06T17:30:00').getTime();
+        let isExpanded = false;
+
+        function toggleIsland() {
+            const island = document.getElementById('island');
+            const expandedUI = document.getElementById('expanded-ui');
+            const mini = document.getElementById('mini-percent');
+            isExpanded = !isExpanded;
+            
+            if(isExpanded) {
+                island.classList.add('island-expanded');
+                expandedUI.style.display = 'block';
+                mini.innerText = "学期时间轴";
+                mini.style.fontSize = "14px";
+            } else {
+                island.classList.remove('island-expanded');
+                expandedUI.style.display = 'none';
+                mini.style.fontSize = "13px";
+                update(); 
+            }
+        }
+
+        function update() {
+            const now = new Date().getTime();
+            
+            const diff = end - now;
+            if (diff > 0) {
+                document.getElementById('d').innerText = Math.floor(diff / 86400000);
+                document.getElementById('h').innerText = Math.floor((diff % 86400000) / 3600000).toString().padStart(2,'0');
+                document.getElementById('m').innerText = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
+                document.getElementById('s').innerText = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
+            }
+
+            const total = end - start;
+            const passed = now - start;
+            const percent = Math.min(Math.max((passed / total) * 100, 0), 100).toFixed(6);
+            
+            document.getElementById('bar').style.width = percent + '%';
+            document.getElementById('full-percent').innerText = percent + '%';
+            
+            if(!isExpanded) {
+                document.getElementById('mini-percent').innerText = "已过 " + percent + "%";
+            }
+        }
+
+        setInterval(update, 100);
+        update();
+    </script>
+</body>
+</html>
